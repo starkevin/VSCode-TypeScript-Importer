@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es3",
+        "moduleResolution": "classic"
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}

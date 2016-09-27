@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": ""
+    },
+    "workflowFiles": [
+        "!{project2}"
+    ],
+    "files": [
+        "index.ts",
+        "sample.ts",
+        "folder.ts",
+        "test.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
