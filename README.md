@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Visual Studio Code Typescript Auto Importer #
 
 ## What is it ##
