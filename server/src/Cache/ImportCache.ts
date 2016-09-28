@@ -267,7 +267,7 @@ class ImportCache {
     private getItem(inner: ICacheFile):CompletionItem {
         return {
             label: inner.method + (this.showNamespace ? " (" + inner.namespace + ")" : ""),
-            kind: CompletionItemKind.Text,
+            kind: CompletionItemKind.Function,
             insertText: inner.method + " = " + inner.namespace + "." + inner.method + ";"
         }
     }
@@ -279,7 +279,7 @@ class ImportCache {
     private getSpecialItem(inner: ICacheFile): CompletionItem {
         return {
             label: inner.method + (this.showNamespace ? " (" + inner.namespace + ")" : ""),
-            kind: CompletionItemKind.Text,
+            kind: CompletionItemKind.Function,
             insertText: inner.method + "\u200B\u200B"
         }
     }
@@ -291,7 +291,7 @@ class ImportCache {
     private getItemCommonJS(inner: ICacheFile):CompletionItem {
         return {
             label: inner.method + (this.showNamespace ? " (" + inner.namespace + ")" : ""),
-            kind: CompletionItemKind.Text,
+            kind: CompletionItemKind.Function,
             insertText: `{ ${inner.method} } from "${this.getCommonJSPath(inner)}";`
         }
     }
@@ -303,7 +303,7 @@ class ImportCache {
     private getSpecialItemCommonJS(inner: ICacheFile):CompletionItem {
         return {
             label: inner.method,
-            kind: CompletionItemKind.Text,
+            kind: CompletionItemKind.Function,
             insertText: inner.method + "\u200B\u200B"
         }
     }

@@ -1,26 +1,27 @@
 {
-	"name": "typescriptimporter",
-	"description": "Automates importing of TypeScript classes",
-	"author": "Kevin McGowan",
-	"license": "MIT",
-	"version": "1.2.0",
-	"publisher": "KevinMcGowan",
-	"engines": {
-		"vscode": "0.10.x"
-	},
-	"categories": [
-		"Languages"
-	],
-	"activationEvents": [
-		"onLanguage:typescript",
+    "name": "TypeScriptImport",
+    "displayName": "TypeScript Import",
+    "description": "Automates importing of TypeScript classes",
+    "author": "Kevin McGowan",
+    "license": "MIT",
+    "version": "1.4.0",
+    "publisher": "kevinmcgowan",
+    "engines": {
+        "vscode": "0.10.x"
+    },
+    "categories": [
+        "Languages"
+    ],
+    "activationEvents": [
+        "onLanguage:typescript",
         "onLanguage:javascript"
-	],
-	"main": "./out/extension",
-	"contributes": {
-		"configuration": {
-			"type": "object",
-			"title": "TypeScriptImporter Configuration",
-			"properties": {
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "configuration": {
+            "type": "object",
+            "title": "TypeScriptImporter Configuration",
+            "properties": {
                 "TypeScriptImporter.showNamespaceOnImports": {
                     "type": "boolean",
                     "default": true,
@@ -34,26 +35,30 @@
                 "TypeScriptImporter.IgnoreListedFolders": {
                     "type": "string",
                     "default": "./, .scripts/",
-                    "description": "Comma separated string. These folders will be excluded from code hints. This is useful if you have a mix of CommonJS and Namespaces"   
+                    "description": "Comma separated string. These folders will be excluded from code hints. This is useful if you have a mix of CommonJS and Namespaces"
                 },
                 "TypeScriptImporter.SyncInterval": {
                     "type": "number",
                     "default": "15",
-                    "description": "How often to resync for changes. Advanced users only, can cause instability"   
+                    "description": "How often to resync for changes. Advanced users only, can cause instability"
                 }
-			}
-		}
-	},	
-	"scripts": {
-		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
-	},
-	"devDependencies": {
-		"typescript": "^1.6.2",
-		"vscode": "0.10.x"
-	},
-	"dependencies": {
-		"vscode-languageclient": "^1.1.0",
-		"glob": "^7.0.3"
-	}
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+        "compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+    },
+    "devDependencies": {
+        "typescript": "^1.6.2",
+        "vscode": "0.10.x"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^1.1.0",
+        "glob": "^7.0.3"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/starkevin/VSCode-TypeScript-Importer"
+    }
 }

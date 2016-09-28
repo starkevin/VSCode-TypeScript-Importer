@@ -3,10 +3,8 @@
         "!{project2}"
     ],
     "files": [
-        "index.ts",
-        "sample.ts",
-        "folder.ts",
-        "test.ts"
+        "sub_folder/Sample.ts",
+        "Example.ts"
     ],
     "exclude": [
         "node_modules"

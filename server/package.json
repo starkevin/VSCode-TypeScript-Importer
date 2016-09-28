@@ -1,5 +1,5 @@
 {
-	"name": "TypeScriptImporterServer",
+	"name": "TypeScriptImportServer",
 	"description": "Automates importing of TypeScript classes",
 	"version": "1.0.0",
 	"author": "Kevin McGowan",
