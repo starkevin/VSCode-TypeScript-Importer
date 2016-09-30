@@ -37,6 +37,8 @@ class TSWatcher {
         
         /**
          * Resync every 15 seconds
+         * This NEEDS to be improved to only look at changes, on massive projects it's going to bottleneck
+         * Bet365 use case is hitting ~75% CPU briefly
          */
         setInterval(() => {
             /// VS-Code workspace can not follow symlinks
@@ -88,15 +90,21 @@ class TSWatcher {
                 workspace.openTextDocument(item).then((document: TextDocument) => {
                     count--;
                     
-                    var content: any;
+                    /// TSConfig
+                    let content: {
+                        workflowFiles?,
+                        compilerOptions: {
+                            module
+                        }
+                    }
                     
                     try {
                         content = JSON.parse(document.getText());
                     } catch (e) {
-                        content = null;
+                        /// warn maybe?
                     }
                     
-                    var response: IFramework = { name: framework[1], dependancies: [] };
+                    let response: IFramework = { name: framework[1], dependancies: [] };
                     
                     /// If the TSConfig has JSON
                     if(content){
@@ -171,7 +179,6 @@ class TSWatcher {
                             TSFormatter.Format(data, item)
                         );
                     }
-                    
                 })
             }
         });
@@ -194,12 +201,31 @@ class TSWatcher {
         }
         
         workspace.openTextDocument(Uri.file(params[0])).then((doc: TextDocument) => {
-            const target = doc.getText().split(OS.EOL)[line];
+            const common = target.commonJS;
+            const split = doc.getText().split(OS.EOL);
+            const textTarget = split[line];
             /// Remove the hidden character
-            edit.replace(Uri.file(params[0]), new Range(new Position(line, target.indexOf("\u200B\u200B")), new Position(line, target.indexOf("\u200B\u200B") + 2)), "");
+            edit.replace(Uri.file(params[0]), new Range(new Position(line, textTarget.indexOf("\u200B\u200B")), new Position(line, textTarget.indexOf("\u200B\u200B") + 2)), "");
             
             if(doc.getText().indexOf(input) === -1){
-                edit.insert(Uri.file(params[0]), new Position(1, 0), input);
+                if(common) {
+                    edit.insert(Uri.file(params[0]), new Position(1, 0), input);
+                } else {
+                    /// Check if we have a namespace or module
+                    if(doc.getText().match(/(namespace|module)\s(\w+)/)) {
+                        /// Find it
+                        for(let i = 0, len = split.length; i < len; i++){
+                            if(split[i].match(/(namespace|module)\s(\w+)/)) {
+                                /// Insert here
+                                edit.insert(Uri.file(params[0]), new Position(i + 1, 0), input);
+                                break;
+                            }
+                        }
+                    } else {
+                        /// Otherwise put it at the top
+                        edit.insert(Uri.file(params[0]), new Position(1, 0), input);
+                    }
+                }
             }
             
             workspace.applyEdit(edit);

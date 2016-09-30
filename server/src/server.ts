@@ -1,7 +1,3 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
 'use strict';
 
 import {
@@ -11,34 +7,19 @@ import {
 	InitializeParams, InitializeResult,
 	CompletionItem, CompletionItemKind, Files, Definition, CodeActionParams, Command, DidChangeTextDocumentParams
 } from 'vscode-languageserver';
-
-import Settings = ns_settings.TypescriptImporter;
+import { CompletionItemFactory } from "./Factory/CompletionItemFactory";
+import { TypescriptImporter } from "./Settings/TypeScriptImporterSettings";
 import ImportCache = require('./Cache/ImportCache');
 import ICacheFile = require('./Cache/ICacheFile');
 import CommunicationMethods = require('./Methods/CommunicationMethods');
 import IFramework = require('./Cache/IFramework');
+import { CompletionGlobals } from "./Factory/Helper/CompletionGlobals";
+import { PrototypalAdditions } from "./d";
 import OS = require('os');
 import fs = require('fs');
 
-/**
- * Fixes VSCode wrong implementation
- */
-interface TextDocumentIdentifier {
-    /**
-     * The text document's uri.
-     */
-    uri: string;
-    
-    /**
-     * Text doc position
-     */
-    position: {
-        character: number,
-        line: number
-    }
-}
-
-require('./polyfill')();
+/// Can't seem to get this to self instantiate in a node context and actually apply
+PrototypalAdditions();
 
 // Create a connection for the server. The connection uses 
 // stdin / stdout for message passing
@@ -46,10 +27,8 @@ let connection: IConnection = createConnection(new IPCMessageReader(process), ne
 
 // After the server has started the client sends an initilize request. The server receives
 // in the passed params the rootPath of the workspace plus the client capabilites. 
-let workspaceRoot: string;
 connection.onInitialize((params): InitializeResult => {
-	workspaceRoot = params.rootPath;
-    _importCache.root = workspaceRoot.replace(/\\/g, '/');
+    CompletionGlobals.Root = params.rootPath.replace(/\\/g, '/');
 	return {
 		capabilities: {
 			// Tell the client that the server support code complete
@@ -63,9 +42,9 @@ connection.onInitialize((params): InitializeResult => {
 });
 
 
-/// =================================
-/// Configuration
-/// =================================
+// /// =================================
+// /// Configuration
+// /// =================================
 
 
 /// Maximum amount of imports
@@ -78,10 +57,10 @@ let showNamespaceOnImports: boolean;
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration((change) => {
-	let settings = <Settings>change.settings;
+	const settings = change.settings.TypeScriptImporter as TypescriptImporter;
     showNamespaceOnImports = settings.showNamespaceOnImports || true;
     
-    _importCache.showNamespace = showNamespaceOnImports;
+    CompletionItemFactory.ShowNamespace = showNamespaceOnImports;
 });
 
 
@@ -124,7 +103,7 @@ connection.onNotification({method: CommunicationMethods.RESYNC}, () => {
 connection.onCompletion((textDocumentPosition: TextDocumentIdentifier): CompletionItem[] => {
     // There's no quick way of getting this information without keeping the files permanently in memory...
     // TODO: Can we add some validation here so that we bomb out quicker?
-    var text;
+    let text;
     
     /// documents doesn't automatically update
     if(_fileArray[textDocumentPosition.uri]){
@@ -134,18 +113,18 @@ connection.onCompletion((textDocumentPosition: TextDocumentIdentifier): Completi
         text = documents.get(textDocumentPosition.uri).getText();
     }
     
-    var input = text.split(OS.EOL);
+    const input = text.split(OS.EOL);
     _targetLine = textDocumentPosition.position.line;
     _targetString = input[_targetLine];
     
-    _importCache.uri = decodeURIComponent(textDocumentPosition.uri).replace("file:///", "");
+    CompletionGlobals.Uri = decodeURIComponent(textDocumentPosition.uri).replace("file:///", "");
     
     /// If we are not on an import, we don't care
     if(_targetString.indexOf("import") !== -1){
-        return _importCache.getOnImport();
+        return _importCache.getOnImport(CompletionItemFactory.getItemCommonJS, CompletionItemFactory.getItem);
     /// Make sure it's not a comment (i think?)
     } else if(!_targetString.match(/(\/\/|\*|\w\.$)/)) {
-        return _importCache.getOnTypeHint();
+        return _importCache.getOnImport(CompletionItemFactory.getInlineItemCommonJS, CompletionItemFactory.getInlineItem);
     }
 });
 
@@ -164,7 +143,7 @@ connection.onDidChangeTextDocument((params: DidChangeTextDocumentParams) => {
         const contentString = content.split(OS.EOL)[_targetLine];
         
         /// If there has been a change, aka the user has selected the option
-        if(!~contentString.indexOf("//") && contentString !== _targetString && !contentString.match(/(\/\/|\*|\w\.$)/)) {
+        if(contentString !== _targetString && !contentString.match(/(\/\/|\*|\w\.$)/)) {
             /// Get the type if we're typing inline
             let result: RegExpExecArray;
             let subString = contentString;
@@ -177,6 +156,7 @@ connection.onDidChangeTextDocument((params: DidChangeTextDocumentParams) => {
                         /// Inform the client to do the change (faster than node FS)
                         connection.sendNotification(
                             { method: CommunicationMethods.SAVE_REQUEST },
+                            /// CompletionGlobals.Uri?
                             [decodeURIComponent(params.uri.replace("file:///", "")),
                             target,
                             _targetLine]

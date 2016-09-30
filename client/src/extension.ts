@@ -20,7 +20,7 @@ import TSWatcher = require("./Watcher/TSWatcher");
 
 export function activate(context: ExtensionContext) {
 	// The server is implemented in node
-	let serverModule = context.asAbsolutePath(path.join('server', 'server.js'));
+	let serverModule = context.asAbsolutePath(path.join('server', 'Server.js'));
     
     ApplicationGlobals.Client = new LanguageClient('TypeScript Importer', ServerSettings.getServerSettings(serverModule), ClientSettings);
 	new TSWatcher();

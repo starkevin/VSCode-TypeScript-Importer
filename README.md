@@ -13,7 +13,7 @@ import myClass = ns_myfolder.myClass
 
 With TypeScriptImporter, you will now simply declare it inline, accept the code hint and the plugin deals with the rest.
 
-![TypeScript Auto Importer](http://i.imgur.com/xUbsJDI.gif)
+![TypeScript Auto Importer](http://i.imgur.com/XB4JPyy.gif)
 
 ## Installation ##
 
@@ -78,6 +78,7 @@ Alternatively
 ```
 cd client && tsc -w
 cd server && tsc -w
+```
 
 ## Debugging ##
 

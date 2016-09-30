@@ -15,3 +15,5 @@ export interface InterfaceOne {
 }
 
 export type TypeOne = string;
+
+/// Pickup all
