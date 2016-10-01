@@ -9,6 +9,7 @@ Currently, you'll find that you're typing
 
 ```javascript
 import myClass = ns_myfolder.myClass
+import { MyClass } from "./myClass"
 ```
 
 With TypeScriptImporter, you will now simply declare it inline, accept the code hint and the plugin deals with the rest.
@@ -43,8 +44,8 @@ For now the plugin just supports namespaces, but has in-built experimental suppo
 Module Type   | Supported
 ------------- | -------------
 Namespaces    | Yes
-ES6 Imports   | Partial
-CommonJS      | Partial, ES6 only
+ES6 Imports   | Yes
+CommonJS      | Yes
 AMD           | No
 SystemJS      | No
 UMD           | No

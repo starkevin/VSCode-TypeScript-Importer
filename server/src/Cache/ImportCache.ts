@@ -159,7 +159,8 @@ class ImportCache {
                     return {
                         commonJS: true,
                         namespace: element.namespace,
-                        path: `{ ${element.method} } from "${GetCommonJSPath(element)}";`,
+                        /// ES6 vs legacy
+                        path: element.method ? `{ ${element.method} } from "${GetCommonJSPath(element)}";` : `${element.namespace} = require("${GetCommonJSPath(element)}")`,
                         method: ""
                     }
                 }

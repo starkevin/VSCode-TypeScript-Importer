@@ -53,7 +53,7 @@ class TSFormatter {
      * Formats for commonJS
      */
     private static FormatCommonJS(input: string, path: string): ITSFile {
-        const methods = this.GetMethods(input);
+        const methods = this.GetMethods(input, true);
         
         return {methods: methods, namespace: path.match(/((\w+)(\.(ts|js)))/)[2], path: path, commonJS: true};
     }
@@ -62,7 +62,7 @@ class TSFormatter {
     /**
      * Returns all possible methods from a class
      */
-    private static GetMethods(input: string): string[] {
+    private static GetMethods(input: string, commonJS: boolean = false): string[] {
         /// Find the class or interface
         const methods = [];
         
@@ -89,6 +89,13 @@ class TSFormatter {
                 /// another way of doing internal declarations
                 input = this.GetAdjustedInput(match[2], match, input);
             } else {
+                /// non-ES6 commonJS will fall into here
+                /// export = this
+                /// export = {this: this}
+                // if (commonJS) {
+                //     methods.push()
+                // }
+                
                 input = this.GetAdjustedInput(null, match, input);
             }
         }

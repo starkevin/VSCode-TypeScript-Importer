@@ -22,9 +22,6 @@ export function GetCommonJSPath(inner: ICacheFile): string {
         } else if(relativeUriSplit[i] && relativeTargetSplit[i] && relativeUriSplit[i] !== relativeTargetSplit[i]) {
             path += "../" + relativeTargetSplit[i];
         /// Otherwise if we both exist, go forwards
-        } else if (relativeUriSplit[i] && relativeTargetSplit[i]) {
-            path += spacer + relativeUriSplit[i];
-        /// If only the uri exists, take that
         } else if (relativeUriSplit[i]) {
             path += spacer + relativeUriSplit[i];
         /// If only the target exists, take that

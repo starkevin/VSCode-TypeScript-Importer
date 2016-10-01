@@ -2,9 +2,10 @@
     "name": "TypeScriptImport",
     "displayName": "TypeScript Import",
     "description": "Automates importing of TypeScript classes",
+    "icon": "etc/icon.png",
     "author": "Kevin McGowan",
     "license": "MIT",
-    "version": "1.4.0",
+    "version": "1.6.0",
     "publisher": "kevinmcgowan",
     "engines": {
         "vscode": "0.10.x"

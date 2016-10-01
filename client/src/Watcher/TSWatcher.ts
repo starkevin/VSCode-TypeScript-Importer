@@ -223,7 +223,7 @@ class TSWatcher {
                         }
                     } else {
                         /// Otherwise put it at the top
-                        edit.insert(Uri.file(params[0]), new Position(1, 0), input);
+                        edit.insert(Uri.file(params[0]), new Position(0, 0), input);
                     }
                 }
             }

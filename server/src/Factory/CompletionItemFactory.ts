@@ -39,10 +39,23 @@ export class CompletionItemFactory {
      * Gets a cmmon JS implementation of an import
      */
     public static getItemCommonJS(inner: ICacheFile):CompletionItem {
+        let label: string;
+        let insertText: string;
+        
+        /// Need to deal with legacy and ES6
+        if(inner.method){
+            label = inner.method + (this.ShowNamespace ? " (" + inner.namespace + ")" : "");
+            insertText = `{ ${inner.method} } from "${GetCommonJSPath(inner)}";`;
+        } else {
+            /// Ignore the flag otherwise we've got nothing to show
+            label = inner.namespace;
+            insertText = `${inner.namespace} = require("${GetCommonJSPath(inner)}")`;
+        }
+        
         return {
-            label: inner.method + (this.ShowNamespace ? " (" + inner.namespace + ")" : ""),
+            label: label,
             kind: CompletionItemKind.Function,
-            insertText: `{ ${inner.method} } from "${GetCommonJSPath(inner)}";`
+            insertText: insertText 
         }
     }
     
@@ -51,10 +64,23 @@ export class CompletionItemFactory {
      * Gets a cmmon JS implementation of an import
      */
     public static getInlineItemCommonJS(inner: ICacheFile):CompletionItem {
+        let label: string;
+        let insertText: string;
+        
+        /// Need to deal with legacy and ES6
+        if(inner.method){
+            label = inner.method + (this.ShowNamespace ? " (" + inner.namespace + ")" : "");
+            insertText = `${inner.method}\u200B\u200B`;
+        } else {
+            /// Ignore the flag otherwise we've got nothing to show
+            label = inner.namespace;
+            insertText = `${inner.namespace}\u200B\u200B`;
+        }
+        
         return {
-            label: inner.method,
+            label: label,
             kind: CompletionItemKind.Function,
-            insertText: `${inner.method}\u200B\u200B`
+            insertText: insertText
         }
     }
 }
