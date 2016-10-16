@@ -212,10 +212,10 @@ class TSWatcher {
                     edit.insert(Uri.file(params[0]), new Position(1, 0), input);
                 } else {
                     /// Check if we have a namespace or module
-                    if(doc.getText().match(/(namespace|module)\s(\w+)/)) {
+                    if(doc.getText().match(/(^namespace|^module)\s(\w+)/)) {
                         /// Find it
                         for(let i = 0, len = split.length; i < len; i++){
-                            if(split[i].match(/(namespace|module)\s(\w+)/)) {
+                            if(split[i].match(/(^namespace|^module)\s(\w+)/)) {
                                 /// Insert here
                                 edit.insert(Uri.file(params[0]), new Position(i + 1, 0), input);
                                 break;
