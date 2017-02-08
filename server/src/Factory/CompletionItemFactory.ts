@@ -18,7 +18,8 @@ export class CompletionItemFactory {
         return {
             label: inner.method + (this.ShowNamespace ? " (" + inner.namespace + ")" : ""),
             kind: CompletionItemKind.Function,
-            insertText: `${inner.method} = ${inner.namespace}.${inner.method};`
+            insertText: `${inner.method} = ${inner.namespace}.${inner.method};`,
+            data: 365
         }
     }
     
@@ -30,7 +31,8 @@ export class CompletionItemFactory {
         return {
             label: inner.method + (this.ShowNamespace ? " (" + inner.namespace + ")" : ""),
             kind: CompletionItemKind.Function,
-            insertText: `${inner.method}\u200B\u200B`
+            insertText: `${inner.method}\u200B\u200B`,
+            data: 365
         }
     }
     

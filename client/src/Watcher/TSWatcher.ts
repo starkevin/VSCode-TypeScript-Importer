@@ -44,7 +44,7 @@ class TSWatcher {
             /// VS-Code workspace can not follow symlinks
             glob(workspace.rootPath + "/**/tsconfig.json", {ignore: "**/node_modules/**", follow: true}, (err: Error, matches: string[]) => {
                 if(!err){
-                    ApplicationGlobals.Client.sendNotification({method: CommunicationMethods.RESYNC});
+                    ApplicationGlobals.Client.sendNotification(CommunicationMethods.RESYNC);
                     
                     /// Resync command after setting up to go and get the files 
                     this.onTSConfigComplete(matches);
@@ -53,11 +53,8 @@ class TSWatcher {
         }, (workspace.getConfiguration("TypeScriptImporter").get("SyncInterval") as number) * 1000);
         
         /// save requests from the server
-        ApplicationGlobals.Client.onNotification({ method: CommunicationMethods.SAVE_REQUEST },
-            (params: string[]) => { 
-                this.onSaveRequest(params);
-            }
-        );
+        ApplicationGlobals.Client.onNotification(CommunicationMethods.SAVE_REQUEST, this.onSaveRequest);
+        ApplicationGlobals.Client.onNotification(CommunicationMethods.UNDO_SAVE_REQUEST, this.onUndoSaveRequest);
     }
     
     
@@ -128,8 +125,8 @@ class TSWatcher {
                     }
                     
                     /// Register with the server
-                    ApplicationGlobals.Client.sendNotification({
-                        method: CommunicationMethods.TSCONFIG_UPDATE},
+                    ApplicationGlobals.Client.sendNotification(
+                        CommunicationMethods.TSCONFIG_UPDATE,
                         response
                     )
                     
@@ -174,8 +171,8 @@ class TSWatcher {
                 /// Workspace crashes, so we're going to use native node
                 fs.readFile(item, "utf8", (err, data) => {
                     if(!err){
-                        ApplicationGlobals.Client.sendNotification({
-                            method: CommunicationMethods.NAMESPACE_UPDATE}, 
+                        ApplicationGlobals.Client.sendNotification(
+                            CommunicationMethods.NAMESPACE_UPDATE, 
                             TSFormatter.Format(data, item)
                         );
                     }
@@ -188,10 +185,10 @@ class TSWatcher {
     /**
      * When we request a save
      */
-    private onSaveRequest(params: any[]){
+    private onSaveRequest(...args){
         const edit = new WorkspaceEdit();
-        const target: ITSFile = params[1];
-        const line: number = params[2];
+        const target: ITSFile = args[1];
+        const line: number = args[2];
         var input: string;
         
         if(!target.commonJS){
@@ -200,36 +197,58 @@ class TSWatcher {
             input = "import " + target.path + OS.EOL;
         }
         
-        workspace.openTextDocument(Uri.file(params[0])).then((doc: TextDocument) => {
+        workspace.openTextDocument(Uri.file(args[0])).then((doc: TextDocument) => {
             const common = target.commonJS;
             const split = doc.getText().split(OS.EOL);
             const textTarget = split[line];
             /// Remove the hidden character
-            edit.replace(Uri.file(params[0]), new Range(new Position(line, textTarget.indexOf("\u200B\u200B")), new Position(line, textTarget.indexOf("\u200B\u200B") + 2)), "");
+            edit.replace(Uri.file(args[0]), new Range(new Position(line, textTarget.indexOf("\u200B\u200B")), new Position(line, textTarget.indexOf("\u200B\u200B") + 2)), "");
             
             if(doc.getText().indexOf(input) === -1){
                 if(common) {
-                    edit.insert(Uri.file(params[0]), new Position(1, 0), input);
+                    edit.insert(Uri.file(args[0]), new Position(1, 0), input);
                 } else {
                     /// Check if we have a namespace or module
-                    if(doc.getText().match(/(^namespace|^module)\s(\w+)/)) {
+                    if(doc.getText().match(/(namespace|module)\s(\w+)/)) {
                         /// Find it
                         for(let i = 0, len = split.length; i < len; i++){
-                            if(split[i].match(/(^namespace|^module)\s(\w+)/)) {
+                            if(split[i].match(/(namespace|module)\s(\w+)/)) {
                                 /// Insert here
-                                edit.insert(Uri.file(params[0]), new Position(i + 1, 0), input);
+                                edit.insert(Uri.file(args[0]), new Position(i + 1, 0), input);
                                 break;
                             }
                         }
                     } else {
+                        input = input.replace("    import", "import");
                         /// Otherwise put it at the top
-                        edit.insert(Uri.file(params[0]), new Position(0, 0), input);
+                        edit.insert(Uri.file(args[0]), new Position(0, 0), input);
                     }
                 }
             }
             
             workspace.applyEdit(edit);
         })
+    }
+    
+    
+    /**
+     * Undo a save
+     */
+    private onUndoSaveRequest(file: string):void {
+        const edit = new WorkspaceEdit();
+        
+        workspace.openTextDocument(Uri.file(file)).then((doc: TextDocument) => {
+            const split = doc.getText().split(OS.EOL);
+            
+            for(let i = 0; i < split.length; i++) {
+                if(split[i].indexOf("\u200B") > -1) {
+                    /// Remove the hidden character
+                    edit.replace(Uri.file(file), new Range(new Position(i, split[i].indexOf("\u200B\u200B")), new Position(i, split[i].indexOf("\u200B\u200B") + 2)), "");
+                }
+            }
+            
+            workspace.applyEdit(edit);
+        });
     }
     
 }

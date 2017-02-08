@@ -6,7 +6,7 @@
 
 import * as path from 'path';
 
-import { workspace, Disposable, ExtensionContext, Uri } from 'vscode';
+import { workspace, Disposable, ExtensionContext, Uri, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 
 import ServerSettings = require('./Settings/ServerSettings');
@@ -23,7 +23,9 @@ export function activate(context: ExtensionContext) {
 	let serverModule = context.asAbsolutePath(path.join('server', 'Server.js'));
     
     ApplicationGlobals.Client = new LanguageClient('TypeScript Importer', ServerSettings.getServerSettings(serverModule), ClientSettings);
-	new TSWatcher();
+	ApplicationGlobals.Client.onReady().then(() => {
+		new TSWatcher();
+	})
 
 	// Push the disposable to the context's subscriptions so that the 
 	// client can be deactivated on extension deactivation

@@ -1,4 +1,4 @@
-export function PrototypalAdditions() {
+export function PrototypeAdditions() {
     /**
      * Clones the array into a new one
      */

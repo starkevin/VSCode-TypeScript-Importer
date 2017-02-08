@@ -13,7 +13,7 @@ class ServerSettings {
 }
 
 let debugSettings:IDebugSettings = {
-     execArgv: ["--nolazy", "--debug=6004"]
+     execArgv: ["--nolazy", "--debug=6009"]
 }
 
 interface IDebugSettings {

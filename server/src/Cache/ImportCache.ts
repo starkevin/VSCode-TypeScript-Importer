@@ -34,6 +34,12 @@ class ImportCache {
     private _cache: ICacheFile[][];
     
     
+    /**
+     * 
+     */
+    private _resetRequested: boolean;
+    
+    
     /// ======================
     /// Methods
     /// ======================
@@ -43,9 +49,7 @@ class ImportCache {
      * Resets everything
      */
     public reset():void{
-        this._frameworkList = [];
-        this._namespaceCache = [];
-        this._cache = null;
+        this._resetRequested = true;
     }
     
     
@@ -53,6 +57,13 @@ class ImportCache {
      * Registers a framework
      */
     public registerFramework(framework: IFramework):void {
+        if(this._resetRequested) {
+            this._frameworkList = [];
+            this._namespaceCache = [];
+            this._cache = null;
+            this._resetRequested = false;
+        }
+        
         /// Validate
         if(!this._frameworkList[framework.name]){
             this._frameworkList[framework.name] = [];

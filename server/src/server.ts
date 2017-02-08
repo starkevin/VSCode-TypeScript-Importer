@@ -3,7 +3,7 @@
 import {
 	IPCMessageReader, IPCMessageWriter,
 	createConnection, IConnection, TextDocumentSyncKind,
-	TextDocuments, ITextDocument, Diagnostic, DiagnosticSeverity,
+	TextDocuments, Diagnostic, DiagnosticSeverity, TextDocumentPositionParams,
 	InitializeParams, InitializeResult,
 	CompletionItem, CompletionItemKind, Files, Definition, CodeActionParams, Command, DidChangeTextDocumentParams
 } from 'vscode-languageserver';
@@ -14,12 +14,12 @@ import ICacheFile = require('./Cache/ICacheFile');
 import CommunicationMethods = require('./Methods/CommunicationMethods');
 import IFramework = require('./Cache/IFramework');
 import { CompletionGlobals } from "./Factory/Helper/CompletionGlobals";
-import { PrototypalAdditions } from "./d";
+import { PrototypeAdditions } from "./d";
 import OS = require('os');
 import fs = require('fs');
 
 /// Can't seem to get this to self instantiate in a node context and actually apply
-PrototypalAdditions();
+PrototypeAdditions();
 
 // Create a connection for the server. The connection uses 
 // stdin / stdout for message passing
@@ -78,21 +78,21 @@ documents.listen(connection);
 
 
 /// Listen for when we get a notification for a namespace update
-connection.onNotification({method: CommunicationMethods.NAMESPACE_UPDATE}, (params: ICacheFile) => {
+connection.onNotification(CommunicationMethods.NAMESPACE_UPDATE, (params: ICacheFile) => {
     if(params){
         _importCache.register(params);
     }
 });
 3
 /// Listen for when we get a notification for a tsconfig update
-connection.onNotification({method: CommunicationMethods.TSCONFIG_UPDATE}, (params: IFramework) => {
+connection.onNotification(CommunicationMethods.TSCONFIG_UPDATE, (params: IFramework) => {
     if(params){
         _importCache.registerFramework(params);
     }
 })
 
 /// Listen for when we get a notification for a tsconfig update
-connection.onNotification({method: CommunicationMethods.RESYNC}, () => {
+connection.onNotification(CommunicationMethods.RESYNC, () => {
     _importCache.reset();
 })
 
@@ -100,24 +100,24 @@ connection.onNotification({method: CommunicationMethods.RESYNC}, () => {
 /**
  * When a completion is requested, see if it's an import
  */
-connection.onCompletion((textDocumentPosition: TextDocumentIdentifier): CompletionItem[] => {
+connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
     // There's no quick way of getting this information without keeping the files permanently in memory...
     // TODO: Can we add some validation here so that we bomb out quicker?
     let text;
     
     /// documents doesn't automatically update
-    if(_fileArray[textDocumentPosition.uri]){
-        text = _fileArray[textDocumentPosition.uri];
+    if(_fileArray[textDocumentPosition.textDocument.uri]){
+        text = _fileArray[textDocumentPosition.textDocument.uri];
     } else {
         /// Get this if we don't have anything in cache
-        text = documents.get(textDocumentPosition.uri).getText();
+        text = documents.get(textDocumentPosition.textDocument.uri).getText();
     }
     
     const input = text.split(OS.EOL);
     _targetLine = textDocumentPosition.position.line;
     _targetString = input[_targetLine];
     
-    CompletionGlobals.Uri = decodeURIComponent(textDocumentPosition.uri).replace("file:///", "");
+    CompletionGlobals.Uri = decodeURIComponent(textDocumentPosition.textDocument.uri).replace("file:///", "");
     
     /// If we are not on an import, we don't care
     if(_targetString.indexOf("import") !== -1){
@@ -130,20 +130,41 @@ connection.onCompletion((textDocumentPosition: TextDocumentIdentifier): Completi
 
 
 /**
+ * This is now mandatory
+ */
+connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
+    if(item.data && item.data === 365) {
+        item.detail = item.label;
+    }
+    
+    return item;
+});
+
+
+/**
  * 
  */
 connection.onDidChangeTextDocument((params: DidChangeTextDocumentParams) => {
     /// We have to manually remember this on the server
     /// NOTE: don't query doucments if this isn't available
-    _fileArray[params.uri] = params.contentChanges[0].text;
+    _fileArray[params.textDocument.uri] = params.contentChanges[0].text;
     
-    if(_targetString){
-        /// TODO: This is probably windows only
+    /// If we have no target, make sure the user hasn't tried to undo and left behind our hidden characters, otherwise the plugin appears to stop working
+    if(!_targetString) {
+        if(_fileArray[params.textDocument.uri].indexOf("\u200B\u200B") > -1) {
+            /// Inform the client to do the change (faster than node FS)
+            connection.sendNotification(
+                CommunicationMethods.UNDO_SAVE_REQUEST,
+                /// CompletionGlobals.Uri?
+                [decodeURIComponent(params.textDocument.uri.replace("file:///", ""))]
+            );
+        }
+    } else {
         const content = params.contentChanges[0].text;        
         const contentString = content.split(OS.EOL)[_targetLine];
-        
+
         /// If there has been a change, aka the user has selected the option
-        if(contentString !== _targetString && !contentString.match(/(\/\/|\*|\w\.$)/)) {
+        if(contentString && contentString !== _targetString && !contentString.match(/(\/\/|\*|\w\.$)/)) {
             /// Get the type if we're typing inline
             let result: RegExpExecArray;
             let subString = contentString;
@@ -155,9 +176,9 @@ connection.onDidChangeTextDocument((params: DidChangeTextDocumentParams) => {
                     if(target){
                         /// Inform the client to do the change (faster than node FS)
                         connection.sendNotification(
-                            { method: CommunicationMethods.SAVE_REQUEST },
+                            CommunicationMethods.SAVE_REQUEST,
                             /// CompletionGlobals.Uri?
-                            [decodeURIComponent(params.uri.replace("file:///", "")),
+                            [decodeURIComponent(params.textDocument.uri.replace("file:///", "")),
                             target,
                             _targetLine]
                         );

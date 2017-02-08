@@ -1,2 +1,1 @@
-@ECHO off
 vsce package

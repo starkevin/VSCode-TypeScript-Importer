@@ -6,6 +6,7 @@ class CommunicationMethods {
     public static TSCONFIG_COMPLETE: string = "tsconfigComplete";
     
     public static SAVE_REQUEST: string = "saveRequest";
+    public static UNDO_SAVE_REQUEST = "undoSaveRequest";
     
     public static RESYNC: string = "resync";
     

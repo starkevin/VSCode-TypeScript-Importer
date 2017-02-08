@@ -5,13 +5,14 @@
 	"author": "Kevin McGowan",
 	"license": "MIT",
 	"engines": {
-		"node": "*"
+    "node": "*"
 	},
 	"dependencies": {
-		"vscode-languageserver": "^1.1.0"
+		"vscode-languageserver": "^3.0.4"
 	},
 	"devDependencies": {
-		"typescript": "^1.6.2"
+		"@types/node": "^6.0.52",
+		"typescript": "^2.1.5"
 	},
 	"scripts": {
 		"compile": "installServerIntoExtension ../client ./package.json ./tsconfig.json && tsc -p .",
