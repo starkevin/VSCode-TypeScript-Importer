@@ -81,7 +81,10 @@ class TSWatcher {
                 }
             }
             
-            let framework = item.match(/(\w+)(.tsconfig)/);
+            /// d:/Web/JS/Project/api/database-controller/tsconfig.json
+            /// (database-controller)(tsconfig)
+            /// Match everything that isn't a forward slash before the tsconfig
+            let framework = item.match(/([^\/]+)(\/tsconfig)/);
             /// If we get a match, then assume this is a framework
             if(framework){
                 workspace.openTextDocument(item).then((document: TextDocument) => {

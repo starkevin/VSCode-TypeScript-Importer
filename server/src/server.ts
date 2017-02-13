@@ -101,30 +101,35 @@ connection.onNotification(CommunicationMethods.RESYNC, () => {
  * When a completion is requested, see if it's an import
  */
 connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    // There's no quick way of getting this information without keeping the files permanently in memory...
-    // TODO: Can we add some validation here so that we bomb out quicker?
-    let text;
-    
-    /// documents doesn't automatically update
-    if(_fileArray[textDocumentPosition.textDocument.uri]){
-        text = _fileArray[textDocumentPosition.textDocument.uri];
-    } else {
-        /// Get this if we don't have anything in cache
-        text = documents.get(textDocumentPosition.textDocument.uri).getText();
-    }
-    
-    const input = text.split(OS.EOL);
-    _targetLine = textDocumentPosition.position.line;
-    _targetString = input[_targetLine];
-    
-    CompletionGlobals.Uri = decodeURIComponent(textDocumentPosition.textDocument.uri).replace("file:///", "");
-    
-    /// If we are not on an import, we don't care
-    if(_targetString.indexOf("import") !== -1){
-        return _importCache.getOnImport(CompletionItemFactory.getItemCommonJS, CompletionItemFactory.getItem);
-    /// Make sure it's not a comment (i think?)
-    } else if(!_targetString.match(/(\/\/|\*|\w\.$)/)) {
-        return _importCache.getOnImport(CompletionItemFactory.getInlineItemCommonJS, CompletionItemFactory.getInlineItem);
+    try {
+        // There's no quick way of getting this information without keeping the files permanently in memory...
+        // TODO: Can we add some validation here so that we bomb out quicker?
+        let text;
+        
+        /// documents doesn't automatically update
+        if(_fileArray[textDocumentPosition.textDocument.uri]){
+            text = _fileArray[textDocumentPosition.textDocument.uri];
+        } else {
+            /// Get this if we don't have anything in cache
+            text = documents.get(textDocumentPosition.textDocument.uri).getText();
+        }
+        
+        const input = text.split(OS.EOL);
+        _targetLine = textDocumentPosition.position.line;
+        _targetString = input[_targetLine];
+        
+        CompletionGlobals.Uri = decodeURIComponent(textDocumentPosition.textDocument.uri).replace("file:///", "");
+        
+        /// If we are not on an import, we don't care
+        if(_targetString.indexOf("import") !== -1){
+            return _importCache.getOnImport(CompletionItemFactory.getItemCommonJS, CompletionItemFactory.getItem);
+        /// Make sure it's not a comment (i think?)
+        } else if(!_targetString.match(/(\/\/|\*|\w\.$)/)) {
+            return _importCache.getOnImport(CompletionItemFactory.getInlineItemCommonJS, CompletionItemFactory.getInlineItem);
+        }
+    } catch(e) {
+        console.warn("Typescript Import: Unable to creation completion items");
+        return [];
     }
 });
 

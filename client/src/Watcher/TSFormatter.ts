@@ -25,19 +25,23 @@ class TSFormatter {
         var response: ITSFile = {methods: [], namespace: "", path: path, commonJS: false};
         var namespace: RegExpMatchArray;
         
-        /// These files can be massive and cause instability in large projects, we shrink to avoid overflows
-        /// Find the namespace
-        /// (namespace )[ns_kevin]( {)
-        if(input.indexOf("namespace") > -1){
-            let shorten = input.substring(input.indexOf("namespace") - 1, input.indexOf("namespace") + 200);
-            namespace = shorten.match(/(namespace\s?)(.*[^\s])(\s?{)/);
-        } else if (input.indexOf("module") > -1) {
-            let shorten = input.substring(input.indexOf("module") - 1, input.indexOf("module") + 200);
-            namespace = shorten.match(/(module\s?)(.*[^\s])(\s?{)/);
-        }
-        
-        /// If we're in namespaces and don't have one then the class probably isn't written yet
-        if(!namespace){
+        try {
+            /// These files can be massive and cause instability in large projects, we shrink to avoid overflows
+            /// Find the namespace
+            /// (namespace )[ns_kevin]( {)
+            if(input.indexOf("namespace") > -1){
+                let shorten = input.substring(input.indexOf("namespace") - 1, input.indexOf("namespace") + 200);
+                namespace = shorten.match(/(namespace\s?)(.*[^\s])(\s?{)/);
+            } else if (input.indexOf("module") > -1) {
+                let shorten = input.substring(input.indexOf("module") - 1, input.indexOf("module") + 200);
+                namespace = shorten.match(/(module\s?)(.*[^\s])(\s?{)/);
+            }
+            
+            /// If we're in namespaces and don't have one then the class probably isn't written yet
+            if(!namespace){
+                return null;
+            }
+        } catch(e){
             return null;
         }
         
